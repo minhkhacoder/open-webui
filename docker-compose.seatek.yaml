@@ -12,7 +12,7 @@ services:
     ports:
       - ${OPEN_WEBUI_PORT-3000}:8080
     environment:
-      - 'OLLAMA_BASE_URL=http://localhost:11434'
+      - 'OLLAMA_BASE_URL=http://172.16.105.167:11434'
       - 'WEBUI_SECRET_KEY='
     extra_hosts:
       - host.docker.internal:host-gateway
