@@ -1,18 +1,4 @@
 services:
-  ollama:
-    volumes:
-      - /home/seatek/volumes/ollama:/root/.ollama
-    container_name: ollama
-    pull_policy: always
-    tty: true
-    restart: unless-stopped
-    image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
-    ports:
-      - ${OLLAMA_WEBAPI_PORT-11434}:11434
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-
   open-webui:
     build:
       context: .
@@ -23,17 +9,14 @@ services:
     container_name: open-webui
     volumes:
       - /home/seatek/volumes/openwebui:/app/backend/data
-    depends_on:
-      - ollama
     ports:
       - ${OPEN_WEBUI_PORT-3000}:8080
     environment:
-      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      - 'OLLAMA_BASE_URL=http://localhost:11434'
       - 'WEBUI_SECRET_KEY='
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
 
 volumes:
-  ollama: {}
   open-webui: {}
