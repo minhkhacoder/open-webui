@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { getContext, createEventDispatcher, onMount, onDestroy } from 'svelte';
 
 	const i18n = getContext('i18n');
@@ -7,12 +7,19 @@
 	import ChevronDown from '../icons/ChevronDown.svelte';
 	import ChevronRight from '../icons/ChevronRight.svelte';
 	import Collapsible from './Collapsible.svelte';
+	import Tooltip from './Tooltip.svelte';
+	import Plus from '../icons/Plus.svelte';
 
 	export let open = true;
 
 	export let id = '';
 	export let name = '';
 	export let collapsible = true;
+
+	export let onAddLabel: string = '';
+	export let onAdd: null | Function = null;
+
+	export let dragAndDrop = true;
 
 	export let className = '';
 
@@ -62,12 +69,22 @@
 						}
 					} else {
 						open = true;
-
-						const dataTransfer = e.dataTransfer.getData('text/plain');
-						const data = JSON.parse(dataTransfer);
-
-						console.log(data);
-						dispatch('drop', data);
+						try {
+							const dataTransfer = e.dataTransfer.getData('text/plain');
+							if (dataTransfer) {
+								const data = JSON.parse(dataTransfer);
+								console.log(data);
+								dispatch('drop', data);
+							} else {
+								console.log('Dropped text data is empty or not text/plain.');
+							}
+						} catch (error) {
+							console.log(
+								'Dropped data is not valid JSON text or is empty. Ignoring drop event for this type of data.'
+							);
+						} finally {
+							draggedOver = false;
+						}
 					}
 				}
 			}
@@ -84,13 +101,19 @@
 	};
 
 	onMount(() => {
+		if (!dragAndDrop) {
+			return;
+		}
 		folderElement.addEventListener('dragover', onDragOver);
 		folderElement.addEventListener('drop', onDrop);
 		folderElement.addEventListener('dragleave', onDragLeave);
 	});
 
 	onDestroy(() => {
-		folderElement.addEventListener('dragover', onDragOver);
+		if (!dragAndDrop) {
+			return;
+		}
+		folderElement.removeEventListener('dragover', onDragOver);
 		folderElement.removeEventListener('drop', onDrop);
 		folderElement.removeEventListener('dragleave', onDragLeave);
 	});
@@ -99,7 +122,7 @@
 <div bind:this={folderElement} class="relative {className}">
 	{#if draggedOver}
 		<div
-			class="absolute top-0 left-0 w-full h-full rounded-sm bg-[hsla(260,85%,65%,0.1)] bg-opacity-50 dark:bg-opacity-10 z-50 pointer-events-none touch-none"
+			class="absolute top-0 left-0 w-full h-full rounded-xs bg-gray-100/50 dark:bg-gray-700/20 bg-opacity-50 dark:bg-opacity-10 z-50 pointer-events-none touch-none"
 		></div>
 	{/if}
 
@@ -108,15 +131,15 @@
 			bind:open
 			className="w-full "
 			buttonClassName="w-full"
-			on:change={(e) => {
-				dispatch('change', e.detail);
+			onChange={(state) => {
+				dispatch('change', state);
 			}}
 		>
 			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			<div class="w-full">
-				<button
-					class="w-full py-1.5 px-2 rounded-md flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-500 font-medium hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-				>
+			<div
+				class="w-full group rounded-md relative flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-900 text-gray-500 dark:text-gray-500 transition"
+			>
+				<button class="w-full py-1.5 pl-2 flex items-center gap-1.5 text-xs font-medium">
 					<div class="text-gray-300 dark:text-gray-600">
 						{#if open}
 							<ChevronDown className=" size-3" strokeWidth="2.5" />
@@ -129,6 +152,28 @@
 						{name}
 					</div>
 				</button>
+
+				{#if onAdd}
+					<button
+						class="absolute z-10 right-2 invisible group-hover:visible self-center flex items-center dark:text-gray-300"
+						on:pointerup={(e) => {
+							e.stopPropagation();
+						}}
+						on:click={(e) => {
+							e.stopPropagation();
+							onAdd();
+						}}
+					>
+						<Tooltip content={onAddLabel}>
+							<button
+								class="p-0.5 dark:hover:bg-gray-850 rounded-lg touch-auto"
+								on:click={(e) => {}}
+							>
+								<Plus className=" size-3" strokeWidth="2.5" />
+							</button>
+						</Tooltip>
+					</button>
+				{/if}
 			</div>
 
 			<div slot="content" class="w-full">
