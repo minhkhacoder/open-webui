@@ -55,7 +55,7 @@
 				>
 					<div>
 						<div class="text-xs flex items-center justify-between mb-2">
-							<div class="font-medium">Actions</div>
+							<div class="font-medium">{$i18n.t('Actions')}</div>
 
 							<div class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
 								<button
@@ -160,7 +160,7 @@
 									</button>
 								</div>
 
-								<hr class="border-gray-50 dark:border-gray-850 my-2" />
+								<hr class="border-gray-50 dark:border-gray-850/30 my-2" />
 							{/each}
 						{/if}
 					</div>
