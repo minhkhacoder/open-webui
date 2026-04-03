@@ -4,28 +4,19 @@ services:
     container_name: open-webui
     volumes:
       - /home/seatek/volumes/openwebui:/app/backend/data
-    ports:
-      - ${OPEN_WEBUI_PORT-3000}:8080
+    # Dùng host network → container truy cập localhost trực tiếp
+    network_mode: host
     environment:
-      # === Ollama Connection ===
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      # === Ollama Connection (localhost vì dùng host network) ===
+      - OLLAMA_BASE_URL=http://localhost:11434
+      - PORT=3000
 
       # === Security ===
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-}
 
-      # === Performance: Tối ưu tốc độ ===
-      # Tắt kiểm tra update tự động (giảm latency khởi động)
+      # === Performance ===
       - ENABLE_OLLAMA_API=true
-      # Tăng timeout cho model lớn (mặc định 120s có thể không đủ)
       - OLLAMA_REQUEST_TIMEOUT=300
-      # Tắt tải model tự động khi khởi động
       - ENABLE_MODEL_FILTER=false
 
-    extra_hosts:
-      - host.docker.internal:host-gateway
     restart: unless-stopped
-    # Giới hạn resource cho Open WebUI (không cần nhiều)
-    deploy:
-      resources:
-        limits:
-          memory: 2G
